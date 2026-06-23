@@ -80,18 +80,103 @@
     <div class="score-box">
         <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--accent);">ANALYSIS SCORE</div>
         <h1 id="final-score" style="margin: 5px 0; font-size: 3rem;">--</h1>
+    </div><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioMetric Scan Pro</title>
+    <style>
+        :root {
+            --accent: #00f3ff; /* Electric Blue */
+            --bg: #05070a;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        body { 
+            background: var(--bg); 
+            color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        .viewport { 
+            position: relative; 
+            width: 100%; 
+            max-width: 500px; 
+            height: 350px; 
+            background: #111; 
+            border-bottom: 3px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #inputImage { max-width: 100%; height: 100%; object-fit: contain; }
+
+        .scanner-line { 
+    position: absolute; width: 100%; height: 2px; 
+    background: var(--accent); opacity: 0.8; 
+    box-shadow: 0 0 15px var(--accent);
+    /* Set animation to play once and stay at the end */
+    animation: scan 2s linear 1 forwards; 
+    display: none;
+}
+
+
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+        .dashboard { padding: 20px; width: 90%; max-width: 500px; }
+        
+        .score-box { border: 1px solid var(--accent); padding: 20px; text-align: center; margin-bottom: 20px; background: var(--glass); }
+        
+        .upload-btn {
+            background: transparent; border: 1px solid var(--accent); color: var(--accent);
+            padding: 12px; width: 100%; cursor: pointer; text-transform: uppercase;
+            font-weight: bold; margin-bottom: 20px; transition: 0.3s;
+        }
+        
+        .upload-btn:hover { background: var(--accent); color: black; }
+
+        .metric { display: flex; justify-content: space-between; margin: 15px 0 5px 0; font-size: 0.9rem; }
+        .progress-bar { width: 100%; background: #1a1a1a; height: 6px; border-radius: 3px; }
+        .progress-fill { background: var(--accent); height: 100%; width: 0%; transition: width 1s ease; }
+    </style>
+</head>
+<body>
+
+<div class="viewport" id="view">
+    <img id="inputImage" src="" alt="">
+    <div id="scanner" class="scanner-line"></div>
+    <div id="placeholder" style="color: #444;">No image uploaded</div>
+</div>
+
+<div class="dashboard">
+    <input type="file" id="imageInput" accept="image/*" style="display:none">
+    <button class="upload-btn" onclick="document.getElementById('imageInput').click()">Upload Portrait</button>
+
+    <div class="score-box">
+        <div style="font-size: 0.7rem; letter-spacing: 2px; color: var(--accent);">ANALYSIS SCORE</div>
+        <h1 id="final-score" style="margin: 5px 0; font-size: 3rem;">--</h1>
     </div>
     
     <div id="metrics-container"></div>
 </div>
 
 <script>
-    const metricsConfig = [
+        const metricsConfig = [
         { name: "Symmetry", key: "sym" },
         { name: "Canthal Tilt", key: "tilt" },
         { name: "Midface Ratio", key: "mid" },
-        { name: "Jawline Sharpness", key: "jaw" }
+        { name: "Jawline Sharpness", key: "jaw" },
+        { name: "Beard Suitability", key: "beard" }, // New
+        { name: "Hair Style Fit", key: "hair" }     // New
     ];
+
 
     function createUI() {
         const container = document.getElementById('metrics-container');
@@ -126,17 +211,18 @@
         }
     });
 
-    // UPDATED FUNCTION: Handles the analysis safely
+    // UPDATED FUNCTION: Uses unique mathematical signatures for each feature
     function runAnalysis() {
         const img = document.getElementById('inputImage');
-        // Fallback seed based on image resolution (Deterministic: same photo = same score)
         const seed = (img.naturalWidth * img.naturalHeight) / 10000;
         
         let total = 0;
         
         metricsConfig.forEach((m) => {
-            // Predictable math for the UI
-            const rawVal = 75 + (Math.abs(Math.sin(seed + m.key.length)) * 20);
+            // Each feature has a unique mathematical "formula" based on the seed
+            // This ensures that "Hair" and "Beard" scores change independently
+            const offset = m.key.charCodeAt(0) * 10; 
+            const rawVal = 70 + (Math.abs(Math.sin(seed + offset)) * 25);
             const finalVal = Math.floor(rawVal);
             
             updateMetricBar(m.key, finalVal);
